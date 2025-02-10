@@ -1,36 +1,61 @@
+import logging
+import numpy as np
+import pandas as pd 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.decomposition import PCA
+from sentence_transformers import SentenceTransformer
 
-
-# Define model (feed-forward, two hidden layers)
-# TODO: This is where most of the work will be done. You can change the model architecture,
-#       add more layers, change activation functions, etc.
+# Define improved model using Sequential API
 class MyModel(nn.Module):
-    def __init__(self, input_dim):
+    def __init__(self, input_dim=397, hidden1=512, hidden2=256, hidden3=128, hidden4 =64, dropout_prob=0.3):
         super(MyModel, self).__init__()
-        self.layer1 = nn.Linear(input_dim, 128)
-        self.relu1 = nn.ReLU()
-        self.layer2 = nn.Linear(128, 64)
-        self.relu2 = nn.ReLU()
-        self.output_layer = nn.Linear(64, 1)
+        
+        self.model = nn.Sequential(
+            nn.BatchNorm1d(input_dim),
+            nn.Linear(input_dim, hidden1),
+            nn.ReLU(),
+            nn.BatchNorm1d(hidden1),
+            nn.Dropout(p=dropout_prob),
+            
+            nn.Linear(hidden1, hidden2),
+            nn.ReLU(),
+            nn.BatchNorm1d(hidden2),
+            nn.Dropout(p=dropout_prob),
+            
+            nn.Linear(hidden2, hidden3),
+            nn.ReLU(),
+            nn.BatchNorm1d(hidden3),
+            nn.Dropout(p=dropout_prob),
 
+            nn.Linear(hidden3, hidden4),
+            nn.ReLU(),
+            nn.BatchNorm1d(hidden4),
+            nn.Dropout(p=dropout_prob),
+            
+            nn.Linear(hidden4, 1)
+        )
+        
     def forward(self, x):
-        x = self.layer1(x)
-        x = self.relu1(x)
-        x = self.layer2(x)
-        x = self.relu2(x)
-        x = self.output_layer(x)
-        return x
-
+        return self.model(x)
 
 def create_model(features):
-    model = MyModel(features.shape[1])
+    scaler = StandardScaler()
+    features_scaled = scaler.fit_transform(features)
+    features_scaled = torch.tensor(features_scaled, dtype=torch.float32)
+    model = MyModel(features_scaled.shape[1])
+    for param in model.parameters():
+        if torch.isnan(param).any() or torch.isinf(param).any():
+            print("Model parameters contain NaN or Inf. Check initialization!")
 
-    # define optimizer (feel free to change this)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    # Define optimizer
+    optimizer = optim.AdamW(model.parameters(), lr=0.0005, weight_decay=1e-4)
 
     return model, optimizer
+
 
 if __name__ == '__main__':
     # create sample model with 228 input features
