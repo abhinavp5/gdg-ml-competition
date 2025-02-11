@@ -152,14 +152,8 @@ def get_prepared_data(data_path="data"):
 
     df["Runtime"] = df["Runtime"].str.replace(" min", "").astype(float)
     df["Gross"] = df["Gross"].str.replace(",", "").astype(float)
-    df["Gross"] = np.log1p(df["Gross"])  # Apply log transformation
-    
-
-    # Feature Engineering
-    df["Log_No_of_Votes"] = np.log1p(df["No_of_Votes"])
+    df["Gross"], df["Log_No_of_Votes"] = np.power(df["Gross"], 0.15),np.log1p(df["No_of_Votes"])
     df["Decade"] = (df["Released_Year"] // 10) * 10  # Convert Year to Decades
-
-    # Encoding Categorical Variables
     df["Series_Title"] = smooth_encode(df, "Series_Title", "Gross")
     df["Certificate"] = smooth_encode(df, "Certificate", "Gross")
     df["Director"] = smooth_encode(df, "Director", "Gross")
