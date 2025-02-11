@@ -33,6 +33,18 @@ def test_saved_model(model_path="saved_weights/model.pth"):
         # test accuracy
         print(f"Test Accuracy: {1 - loss.item() / target.var()}")
 
+        # Calculate additional metrics
+        mae = torch.mean(torch.abs(output - target))
+        mse = torch.mean((output - target) ** 2)
+        # R-squared calculation
+        ss_tot = torch.sum((target - torch.mean(target)) ** 2)
+        ss_res = torch.sum((target - output) ** 2)
+        r2 = 1 - (ss_res / ss_tot)
+        
+        print(f"Mean Absolute Error: {mae.item()}")
+        print(f"Mean Squared Error: {mse.item()}")
+        print(f"R-squared Score: {r2.item()}")
+
         # print first 10 predictions against actual values
         # For <movie title>, model predicted <prediction>, actual <actual>
         print("\nSample Predictions vs Actual:")

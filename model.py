@@ -43,15 +43,19 @@ class MyModel(nn.Module):
         return self.model(x)
 
 def create_model(features):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     scaler = StandardScaler()
-    features_scaled = scaler.fit_transform(features)
-    features_scaled = torch.tensor(features_scaled, dtype=torch.float32)
-    model = MyModel(features_scaled.shape[1])
-    for param in model.parameters():
-        if torch.isnan(param).any() or torch.isinf(param).any():
-            print("Model parameters contain NaN or Inf. Check initialization!")
 
-    # Define optimizer
+    # Ensure features are moved to CPU before applying StandardScaler
+    features_cpu = features.cpu().numpy()
+    features_scaled = scaler.fit_transform(features_cpu)
+
+    # Convert back to tensor and move to CUDA if available
+    features_scaled = torch.tensor(features_scaled, dtype=torch.float32, device=device)
+
+    # Move model to CUDA
+    model = MyModel(features_scaled.shape[1]).to(device)
+
     optimizer = optim.AdamW(model.parameters(), lr=0.0005, weight_decay=1e-4)
 
     return model, optimizer

@@ -13,6 +13,11 @@ from model import create_model
 
 # TODO modify this function however you want to train the model
 def train_model(model, optimizer, criterion, X_train, y_train, X_val, y_val, training_updates=True):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # Move data to the correct device
+    X_train, y_train, X_val, y_val = X_train.to(device), y_train.to(device), X_val.to(device), y_val.to(device)
+    model = model.to(device)  # Move model to GPU if available
 
     num_epochs = 2000 # hint: you shouldn't need anywhere near this many epochs
 
@@ -33,8 +38,15 @@ def train_model(model, optimizer, criterion, X_train, y_train, X_val, y_val, tra
 
 # example training loop
 if __name__ == '__main__':
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+
+
     # Load data
     features, target = get_prepared_data()
+    features, target = features.to(device), target.to(device)  # Move data to GPU
+
 
     # create training and validation sets
     # use 80% of the data for training and 20% for validation
@@ -42,6 +54,7 @@ if __name__ == '__main__':
 
     # Define model (feed-forward, two hidden layers)
     model, optimizer = create_model(X_train)
+    model = model.to(device)
 
     # Define loss function and optimizer
     criterion = nn.MSELoss()
@@ -58,5 +71,8 @@ if __name__ == '__main__':
         print(f"Final Validation Accuracy: {1 - loss.item() / y_val.var()}")
 
     # Save model
-    torch.save(model, "saved_weights/model.pth")
+    # torch.save(model, "saved_weights/model.pth")
+    # print("Model saved as model.pth")
+
+    torch.save(model.state_dict(), "saved_weights/model.pth")
     print("Model saved as model.pth")
