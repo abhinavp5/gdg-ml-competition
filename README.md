@@ -4,7 +4,9 @@
 This repository contains starter code to use when crafting your solution.
 You should clone it on your machine and work from there.
 
-### Disclaimer!!!!!
+# Disclaimer!!!!!
+# Disclaimer!!!!!
+# Disclaimer!!!!!
 If running on a device with CUDA, our files (model.py, prep_data.py, etc.) are cuda compatible and WILL use CUDA. You will need to modify Main.py to run with CUDA enabled in order to work with our files in this scenario (because we were not allowed to modify main.py)!!!!!!
 
 ## How To Use
